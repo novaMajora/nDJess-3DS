@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: make -j"$(nproc)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-build
+          path: |
+            nDJess.3dsx
+            nDJess.elf
+
+  # makerom and bannertool need a newer glibc than the devkitPro container has,
+  # so the CIA is packaged on a regular Ubuntu 24.04 runner.
+  cia:
+    needs: app
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # attach files to releases
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-build
+      - name: Get CIA tools
+        run: |
+          curl -sSL -o makerom.zip https://github.com/3DSGuy/Project_CTR/releases/download/makerom-v0.19.0/makerom-v0.19.0-ubuntu_x86_64.zip
+          curl -sSL -o bannertool.tar.gz https://github.com/carstene1ns/3ds-bannertool/releases/download/1.2.3/bannertool-1.2.3-linux.tar.gz
+          mkdir -p /tmp/ctr && unzip -o makerom.zip -d /tmp/ctr && tar -xzf bannertool.tar.gz -C /tmp/ctr
+          mkdir -p "$HOME/bin"
+          find /tmp/ctr -type f \( -name makerom -o -name bannertool \) -exec chmod +x {} \; -exec cp {} "$HOME/bin/" \;
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Build CIA
+        run: sh tools/build-cia.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nDJess
+          path: |
+            nDJess.3dsx
+            nDJess.cia
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            nDJess.3dsx
+            nDJess.cia

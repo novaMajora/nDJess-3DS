@@ -1,0 +1,8 @@
+build/
+*.3dsx
+*.smdh
+*.elf
+*.cia
+*.map
+build-test/
+romfs/gfx/
