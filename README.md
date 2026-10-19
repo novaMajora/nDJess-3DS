@@ -94,7 +94,6 @@ made that way in the [Azahar](https://azahar-emu.org) emulator.
 - Image decoding: [stb_image](https://github.com/nothings/stb) (public domain)
 - Library, art loader and drawing helpers from nTapeDeck 3DS
 - Built with [libctru](https://github.com/devkitPro/libctru), citro2d and citro3d
-- App and artwork by Nova White
-- With Jessica White
+- App and artwork by Nova White (novaMajora) & Jessica White
 
 *made in honor of my wife. i love you always*
